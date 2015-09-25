@@ -1,7 +1,10 @@
-import urllib2
-import urllib
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
 
-from lxml import etree
+import requests
+from xml.etree import ElementTree as etree
 try:
     from collections import OrderedDict
 except ImportError:
@@ -33,7 +36,7 @@ def _get_address_error(address):
 
 def _parse_address(address):
     result = OrderedDict()
-    for child in address.iterchildren():
+    for child in address:
         # elements are yielded in order
         name = child.tag.lower()
         # More user-friendly names for street
@@ -79,7 +82,7 @@ def _process_multiple(addresses):
 
 def _parse_response(res):
     # General error, e.g., authorization
-    error = _find_error(res.getroot())
+    error = _find_error(res)
     if error is not None:
         raise _get_error(error)
 
@@ -100,11 +103,11 @@ def _get_response(xml):
             ])
     url = '{api_url}?{params}'.format(
         api_url=api_url,
-        params=urllib.urlencode(params),
+        params=urlencode(params),
         )
 
-    res = urllib2.urlopen(url)
-    res = etree.parse(res)
+    res = requests.get(url)
+    res = etree.fromstring(res.content)
 
     return res
 
