@@ -6,36 +6,45 @@ from nose.tools import eq_ as eq
 from pyusps.address_information import verify
 from pyusps.test.util import assert_raises, assert_errors_equal
 
+
 @fudge.patch('requests.get')
 def test_verify_simple(fake_requests_get):
-    req = """http://production.shippingapis.com/ShippingAPI.dll?API=Verify&XML=%3CAddressValidateRequest+USERID%3D%22foo_id%22%3E%3CAddress+ID%3D%220%22%3E%3CAddress1+%2F%3E%3CAddress2%3E6406+Ivy+Lane%3C%2FAddress2%3E%3CCity%3EGreenbelt%3C%2FCity%3E%3CState%3EMD%3C%2FState%3E%3CZip5%3E20770%3C%2FZip5%3E%3CZip4+%2F%3E%3C%2FAddress%3E%3C%2FAddressValidateRequest%3E"""
+    req = ('http://production.shippingapis.com/ShippingAPI.dll?API=Verify&XML'
+           '=%3CAddressValidateRequest+USERID%3D%22foo_id%22%3E%3CAddress+ID'
+           '%3D%220%22%3E%3CAddress1+%2F%3E%3CAddress2%3E6406+Ivy+Lane%3C%2F'
+           'Address2%3E%3CCity%3EGreenbelt%3C%2FCity%3E%3CState%3EMD%3C%2F'
+           'State%3E%3CZip5%3E20770%3C%2FZip5%3E%3CZip4+%2F%3E%3C%2FAddress'
+           '%3E%3C%2FAddressValidateRequest%3E')
 
-    res = """<?xml version="1.0"?>
-<AddressValidateResponse><Address ID="0"><Address2>6406 IVY LN</Address2><City>GREENBELT</City><State>MD</State><Zip5>20770</Zip5><Zip4>1441</Zip4></Address></AddressValidateResponse>"""
+    res = ('<?xml version="1.0"?><AddressValidateResponse><Address ID="0">'
+           '<Address2>6406 IVY LN</Address2><City>GREENBELT</City><State>'
+           'MD</State><Zip5>20770</Zip5><Zip4>1441</Zip4></Address>'
+           '</AddressValidateResponse>')
 
     (fake_requests_get.expects_call()
         .with_args(req)
         .returns(fudge.Fake('Response').has_attr(content=res)))
 
     address = OrderedDict([
-            ('address', '6406 Ivy Lane'),
-            ('city', 'Greenbelt'),
-            ('state', 'MD'),
-            ('zip_code', '20770'),
-            ])
+        ('address', '6406 Ivy Lane'),
+        ('city', 'Greenbelt'),
+        ('state', 'MD'),
+        ('zip_code', '20770'),
+    ])
     res = verify(
         'foo_id',
         address,
-        )
+    )
 
     expected = OrderedDict([
-            ('address', '6406 IVY LN'),
-            ('city', 'GREENBELT'),
-            ('state', 'MD'),
-            ('zip5', '20770'),
-            ('zip4', '1441'),
-            ])
+        ('address', '6406 IVY LN'),
+        ('city', 'GREENBELT'),
+        ('state', 'MD'),
+        ('zip5', '20770'),
+        ('zip4', '1441'),
+    ])
     eq(res, expected)
+
 
 @fudge.patch('requests.get')
 def test_verify_zip5(fake_requests_get):
@@ -48,24 +57,25 @@ def test_verify_zip5(fake_requests_get):
         .returns(fudge.Fake('Response').has_attr(content=res)))
 
     address = OrderedDict([
-            ('address', '6406 Ivy Lane'),
-            ('city', 'Greenbelt'),
-            ('state', 'MD'),
-            ('zip_code', '20770'),
-            ])
+        ('address', '6406 Ivy Lane'),
+        ('city', 'Greenbelt'),
+        ('state', 'MD'),
+        ('zip_code', '20770'),
+    ])
     res = verify(
         'foo_id',
         address,
-        )
+    )
 
     expected = OrderedDict([
-            ('address', '6406 IVY LN'),
-            ('city', 'GREENBELT'),
-            ('state', 'MD'),
-            ('zip5', '20770'),
-            ('zip4', '1441'),
-            ])
+        ('address', '6406 IVY LN'),
+        ('city', 'GREENBELT'),
+        ('state', 'MD'),
+        ('zip5', '20770'),
+        ('zip4', '1441'),
+    ])
     eq(res, expected)
+
 
 @fudge.patch('requests.get')
 def test_verify_zip_both(fake_requests_get):
@@ -78,24 +88,25 @@ def test_verify_zip_both(fake_requests_get):
         .returns(fudge.Fake('Response').has_attr(content=res)))
 
     address = OrderedDict([
-            ('address', '6406 Ivy Lane'),
-            ('city', 'Greenbelt'),
-            ('state', 'MD'),
-            ('zip_code', '207701441'),
-            ])
+        ('address', '6406 Ivy Lane'),
+        ('city', 'Greenbelt'),
+        ('state', 'MD'),
+        ('zip_code', '207701441'),
+    ])
     res = verify(
         'foo_id',
         address,
-        )
+    )
 
     expected = OrderedDict([
-            ('address', '6406 IVY LN'),
-            ('city', 'GREENBELT'),
-            ('state', 'MD'),
-            ('zip5', '20770'),
-            ('zip4', '1441'),
-            ])
+        ('address', '6406 IVY LN'),
+        ('city', 'GREENBELT'),
+        ('state', 'MD'),
+        ('zip5', '20770'),
+        ('zip4', '1441'),
+    ])
     eq(res, expected)
+
 
 @fudge.patch('requests.get')
 def test_verify_zip_dash(fake_requests_get):
@@ -108,24 +119,25 @@ def test_verify_zip_dash(fake_requests_get):
         .returns(fudge.Fake('Response').has_attr(content=res)))
 
     address = OrderedDict([
-            ('address', '6406 Ivy Lane'),
-            ('city', 'Greenbelt'),
-            ('state', 'MD'),
-            ('zip_code', '20770-1441'),
-            ])
+        ('address', '6406 Ivy Lane'),
+        ('city', 'Greenbelt'),
+        ('state', 'MD'),
+        ('zip_code', '20770-1441'),
+    ])
     res = verify(
         'foo_id',
         address
-        )
+    )
 
     expected = OrderedDict([
-            ('address', '6406 IVY LN'),
-            ('city', 'GREENBELT'),
-            ('state', 'MD'),
-            ('zip5', '20770'),
-            ('zip4', '1441'),
-            ])
+        ('address', '6406 IVY LN'),
+        ('city', 'GREENBELT'),
+        ('state', 'MD'),
+        ('zip5', '20770'),
+        ('zip4', '1441'),
+    ])
     eq(res, expected)
+
 
 @fudge.patch('requests.get')
 def test_verify_zip_only(fake_requests_get):
@@ -139,23 +151,24 @@ def test_verify_zip_only(fake_requests_get):
         .returns(fudge.Fake('Response').has_attr(content=res)))
 
     address = OrderedDict([
-            ('address', '6406 Ivy Lane'),
-            ('city', 'Greenbelt'),
-            ('zip_code', '20770'),
-            ])
+        ('address', '6406 Ivy Lane'),
+        ('city', 'Greenbelt'),
+        ('zip_code', '20770'),
+    ])
     res = verify(
         'foo_id',
         address,
-        )
+    )
 
     expected = OrderedDict([
-            ('address', '6406 IVY LN'),
-            ('city', 'GREENBELT'),
-            ('state', 'MD'),
-            ('zip5', '20770'),
-            ('zip4', '1441'),
-            ])
+        ('address', '6406 IVY LN'),
+        ('city', 'GREENBELT'),
+        ('state', 'MD'),
+        ('zip5', '20770'),
+        ('zip4', '1441'),
+    ])
     eq(res, expected)
+
 
 @fudge.patch('requests.get')
 def test_verify_state_only(fake_requests_get):
@@ -168,23 +181,24 @@ def test_verify_state_only(fake_requests_get):
         .returns(fudge.Fake('Response').has_attr(content=res)))
 
     address = OrderedDict([
-            ('address', '6406 Ivy Lane'),
-            ('city', 'Greenbelt'),
-            ('state', 'MD'),
-            ])
+        ('address', '6406 Ivy Lane'),
+        ('city', 'Greenbelt'),
+        ('state', 'MD'),
+    ])
     res = verify(
         'foo_id',
         address,
-        )
+    )
 
     expected = OrderedDict([
-            ('address', '6406 IVY LN'),
-            ('city', 'GREENBELT'),
-            ('state', 'MD'),
-            ('zip5', '20770'),
-            ('zip4', '1441'),
-            ])
+        ('address', '6406 IVY LN'),
+        ('city', 'GREENBELT'),
+        ('state', 'MD'),
+        ('zip5', '20770'),
+        ('zip4', '1441'),
+    ])
     eq(res, expected)
+
 
 @fudge.patch('requests.get')
 def test_verify_firm_name(fake_requests_get):
@@ -197,25 +211,26 @@ def test_verify_firm_name(fake_requests_get):
         .returns(fudge.Fake('Response').has_attr(content=res)))
 
     address = OrderedDict([
-            ('firm_name', 'XYZ Corp'),
-            ('address', '6406 Ivy Lane'),
-            ('city', 'Greenbelt'),
-            ('state', 'MD'),
-            ])
+        ('firm_name', 'XYZ Corp'),
+        ('address', '6406 Ivy Lane'),
+        ('city', 'Greenbelt'),
+        ('state', 'MD'),
+    ])
     res = verify(
         'foo_id',
         address,
-        )
+    )
 
     expected = OrderedDict([
-            ('firm_name', 'XYZ CORP'),
-            ('address', '6406 IVY LN'),
-            ('city', 'GREENBELT'),
-            ('state', 'MD'),
-            ('zip5', '20770'),
-            ('zip4', '1441'),
-            ])
+        ('firm_name', 'XYZ CORP'),
+        ('address', '6406 IVY LN'),
+        ('city', 'GREENBELT'),
+        ('state', 'MD'),
+        ('zip5', '20770'),
+        ('zip4', '1441'),
+    ])
     eq(res, expected)
+
 
 @fudge.patch('requests.get')
 def test_verify_address_extended(fake_requests_get):
@@ -228,25 +243,26 @@ def test_verify_address_extended(fake_requests_get):
         .returns(fudge.Fake('Response').has_attr(content=res)))
 
     address = OrderedDict([
-            ('address', '6406 Ivy Lane'),
-            ('address_extended', 'Suite 12'),
-            ('city', 'Greenbelt'),
-            ('state', 'MD'),
-            ])
+        ('address', '6406 Ivy Lane'),
+        ('address_extended', 'Suite 12'),
+        ('city', 'Greenbelt'),
+        ('state', 'MD'),
+    ])
     res = verify(
         'foo_id',
         address,
-        )
+    )
 
     expected = OrderedDict([
-            ('address_extended', 'STE 12'),
-            ('address', '6406 IVY LN'),
-            ('city', 'GREENBELT'),
-            ('state', 'MD'),
-            ('zip5', '20770'),
-            ('zip4', '1441'),
-            ])
+        ('address_extended', 'STE 12'),
+        ('address', '6406 IVY LN'),
+        ('city', 'GREENBELT'),
+        ('state', 'MD'),
+        ('zip5', '20770'),
+        ('zip4', '1441'),
+    ])
     eq(res, expected)
+
 
 @fudge.patch('requests.get')
 def test_verify_urbanization(fake_requests_get):
@@ -259,25 +275,26 @@ def test_verify_urbanization(fake_requests_get):
         .returns(fudge.Fake('Response').has_attr(content=res)))
 
     address = OrderedDict([
-            ('address', '6406 Ivy Lane'),
-            ('urbanization', 'Puerto Rico'),
-            ('city', 'Greenbelt'),
-            ('state', 'MD'),
-            ])
+        ('address', '6406 Ivy Lane'),
+        ('urbanization', 'Puerto Rico'),
+        ('city', 'Greenbelt'),
+        ('state', 'MD'),
+    ])
     res = verify(
         'foo_id',
         address,
-        )
+    )
 
     expected = OrderedDict([
-            ('address', '6406 IVY LN'),
-            ('city', 'GREENBELT'),
-            ('state', 'MD'),
-            ('urbanization', 'PUERTO RICO'),
-            ('zip5', '20770'),
-            ('zip4', '1441'),
-            ])
+        ('address', '6406 IVY LN'),
+        ('city', 'GREENBELT'),
+        ('state', 'MD'),
+        ('urbanization', 'PUERTO RICO'),
+        ('zip5', '20770'),
+        ('zip4', '1441'),
+    ])
     eq(res, expected)
+
 
 @fudge.patch('requests.get')
 def test_verify_multiple(fake_requests_get):
@@ -291,38 +308,39 @@ def test_verify_multiple(fake_requests_get):
 
     addresses = [
         OrderedDict([
-                ('address', '6406 Ivy Lane'),
-                ('city', 'Greenbelt'),
-                ('state', 'MD'),
-                ]),
+            ('address', '6406 Ivy Lane'),
+            ('city', 'Greenbelt'),
+            ('state', 'MD'),
+        ]),
         OrderedDict([
-                ('address', '8 Wildwood Drive'),
-                ('city', 'Old Lyme'),
-                ('state', 'CT'),
-                ]),
-        ]
+            ('address', '8 Wildwood Drive'),
+            ('city', 'Old Lyme'),
+            ('state', 'CT'),
+        ]),
+    ]
     res = verify(
         'foo_id',
         *addresses
-        )
+    )
 
     expected = [
         OrderedDict([
-                ('address', '6406 IVY LN'),
-                ('city', 'GREENBELT'),
-                ('state', 'MD'),
-                ('zip5', '20770'),
-                ('zip4', '1441'),
-                ]),
+            ('address', '6406 IVY LN'),
+            ('city', 'GREENBELT'),
+            ('state', 'MD'),
+            ('zip5', '20770'),
+            ('zip4', '1441'),
+        ]),
         OrderedDict([
-                ('address', '8 WILDWOOD DR'),
-                ('city', 'OLD LYME'),
-                ('state', 'CT'),
-                ('zip5', '06371'),
-                ('zip4', '1844'),
-                ]),
-        ]
+            ('address', '8 WILDWOOD DR'),
+            ('city', 'OLD LYME'),
+            ('state', 'CT'),
+            ('zip5', '06371'),
+            ('zip4', '1844'),
+        ]),
+    ]
     eq(res, expected)
+
 
 @fudge.patch('requests.get')
 def test_verify_more_than_5(fake_requests_get):
@@ -333,16 +351,17 @@ def test_verify_more_than_5(fake_requests_get):
         OrderedDict(),
         OrderedDict(),
         OrderedDict(),
-        ]
+    ]
 
     msg = assert_raises(
         ValueError,
         verify,
         'foo_id',
         *addresses
-        )
+    )
 
     eq(str(msg), 'Only 5 addresses are allowed per request')
+
 
 @fudge.patch('requests.get')
 def test_verify_api_root_error(fake_requests_get):
@@ -358,21 +377,22 @@ def test_verify_api_root_error(fake_requests_get):
         .returns(fudge.Fake('Response').has_attr(content=res)))
 
     address = OrderedDict([
-            ('address', '6406 Ivy Lane'),
-            ('city', 'Greenbelt'),
-            ('state', 'MD'),
-            ])
+        ('address', '6406 Ivy Lane'),
+        ('city', 'Greenbelt'),
+        ('state', 'MD'),
+    ])
     msg = assert_raises(
         ValueError,
         verify,
         'foo_id',
         address
-        )
+    )
 
     expected = ('80040b1a: Authorization failure.  Perhaps username '
                 'and/or password is incorrect.'
                 )
     eq(str(msg), expected)
+
 
 @fudge.patch('requests.get')
 def test_verify_api_address_error_single(fake_requests_get):
@@ -385,19 +405,20 @@ def test_verify_api_address_error_single(fake_requests_get):
         .returns(fudge.Fake('Response').has_attr(content=res)))
 
     address = OrderedDict([
-            ('address', '6406 Ivy Lane'),
-            ('city', 'Greenbelt'),
-            ('state', 'NJ'),
-            ])
+        ('address', '6406 Ivy Lane'),
+        ('city', 'Greenbelt'),
+        ('state', 'NJ'),
+    ])
     msg = assert_raises(
         ValueError,
         verify,
         'foo_id',
         address
-        )
+    )
 
     expected = '-2147219401: Address Not Found.'
     eq(str(msg), expected)
+
 
 @fudge.patch('requests.get')
 def test_verify_api_address_error_multiple(fake_requests_get):
@@ -411,37 +432,38 @@ def test_verify_api_address_error_multiple(fake_requests_get):
 
     addresses = [
         OrderedDict([
-                ('address', '6406 Ivy Lane'),
-                ('city', 'Greenbelt'),
-                ('state', 'MD'),
-                ]),
+            ('address', '6406 Ivy Lane'),
+            ('city', 'Greenbelt'),
+            ('state', 'MD'),
+        ]),
         OrderedDict([
-                ('address', '8 Wildwood Drive'),
-                ('city', 'Old Lyme'),
-                ('state', 'NJ'),
-                ]),
-        ]
+            ('address', '8 Wildwood Drive'),
+            ('city', 'Old Lyme'),
+            ('state', 'NJ'),
+        ]),
+    ]
     res = verify(
         'foo_id',
         *addresses
-        )
+    )
 
     # eq does not work with exceptions. Process each item manually.
     eq(len(res), 2)
     eq(
         res[0],
         OrderedDict([
-                ('address', '6406 IVY LN'),
-                ('city', 'GREENBELT'),
-                ('state', 'MD'),
-                ('zip5', '20770'),
-                ('zip4', '1441'),
-                ]),
-       )
+            ('address', '6406 IVY LN'),
+            ('city', 'GREENBELT'),
+            ('state', 'MD'),
+            ('zip5', '20770'),
+            ('zip4', '1441'),
+        ]),
+    )
     assert_errors_equal(
         res[1],
         ValueError('-2147219400: Invalid City.'),
-        )
+    )
+
 
 @fudge.patch('requests.get')
 def test_verify_api_empty_error(fake_requests_get):
@@ -454,19 +476,20 @@ def test_verify_api_empty_error(fake_requests_get):
         .returns(fudge.Fake('Response').has_attr(content=res)))
 
     address = OrderedDict([
-            ('address', '6406 Ivy Lane'),
-            ('city', 'Greenbelt'),
-            ('state', 'NJ'),
-            ])
+        ('address', '6406 Ivy Lane'),
+        ('city', 'Greenbelt'),
+        ('state', 'NJ'),
+    ])
     msg = assert_raises(
         TypeError,
         verify,
         'foo_id',
         address
-        )
+    )
 
     expected = 'Could not find any address or error information'
     eq(str(msg), expected)
+
 
 @fudge.patch('requests.get')
 def test_verify_api_order_error(fake_requests_get):
@@ -480,22 +503,22 @@ def test_verify_api_order_error(fake_requests_get):
 
     addresses = [
         OrderedDict([
-                ('address', '6406 Ivy Lane'),
-                ('city', 'Greenbelt'),
-                ('state', 'MD'),
-                ]),
+            ('address', '6406 Ivy Lane'),
+            ('city', 'Greenbelt'),
+            ('state', 'MD'),
+        ]),
         OrderedDict([
-                ('address', '8 Wildwood Drive'),
-                ('city', 'Old Lyme'),
-                ('state', 'CT'),
-                ]),
-        ]
+            ('address', '8 Wildwood Drive'),
+            ('city', 'Old Lyme'),
+            ('state', 'CT'),
+        ]),
+    ]
     msg = assert_raises(
         IndexError,
         verify,
         'foo_id',
         *addresses
-        )
+    )
 
     expected = ('The addresses returned are not in the same order '
                 'they were requested'

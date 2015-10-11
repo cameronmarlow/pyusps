@@ -5,13 +5,11 @@ except ImportError:
 
 import requests
 from xml.etree import ElementTree as etree
-try:
-    from collections import OrderedDict
-except ImportError:
-    from ordereddict import OrderedDict
+from collections import OrderedDict
 
 api_url = 'http://production.shippingapis.com/ShippingAPI.dll'
 address_max = 5
+
 
 def _find_error(root):
     if root.tag == 'Error':
@@ -19,20 +17,23 @@ def _find_error(root):
         desc = root.find('Description')
         return (num, desc)
 
+
 def _get_error(error):
     (num, desc) = error
     return ValueError(
         '{num}: {desc}'.format(
             num=num.text,
             desc=desc.text,
-            )
         )
+    )
+
 
 def _get_address_error(address):
     error = address.find('Error')
     if error is not None:
         error = _find_error(error)
         return _get_error(error)
+
 
 def _parse_address(address):
     result = OrderedDict()
@@ -51,6 +52,7 @@ def _parse_address(address):
 
     return result
 
+
 def _process_one(address):
     # Raise address error if there's only one item
     error = _get_address_error(address)
@@ -58,6 +60,7 @@ def _process_one(address):
         raise error
 
     return _parse_address(address)
+
 
 def _process_multiple(addresses):
     results = []
@@ -80,6 +83,7 @@ def _process_multiple(addresses):
 
     return results
 
+
 def _parse_response(res):
     # General error, e.g., authorization
     error = _find_error(res)
@@ -91,30 +95,29 @@ def _parse_response(res):
     if length == 0:
         raise TypeError(
             'Could not find any address or error information'
-            )
+        )
     if length == 1:
         return _process_one(results.pop())
     return _process_multiple(results)
 
+
 def _get_response(xml):
     params = OrderedDict([
-            ('API', 'Verify'),
-            ('XML', etree.tostring(xml)),
-            ])
+        ('API', 'Verify'),
+        ('XML', etree.tostring(xml)),
+    ])
     url = '{api_url}?{params}'.format(
         api_url=api_url,
         params=urlencode(params),
-        )
+    )
 
     res = requests.get(url)
     res = etree.fromstring(res.content)
 
     return res
 
-def _create_xml(
-    user_id,
-    *args
-    ):
+
+def _create_xml(user_id, *args):
     root = etree.Element('AddressValidateRequest', USERID=user_id)
 
     if len(args) > address_max:
@@ -124,10 +127,10 @@ def _create_xml(
             'Only {address_max} addresses are allowed per '
             'request'.format(
                 address_max=address_max,
-                )
             )
+        )
 
-    for i,arg in enumerate(args):
+    for i, arg in enumerate(args):
         address = arg['address']
         city = arg['city']
         state = arg.get('state', None)
@@ -188,6 +191,7 @@ def _create_xml(
         address_el.append(zip4_el)
 
     return root
+
 
 def verify(user_id, *args):
     xml = _create_xml(user_id, *args)
